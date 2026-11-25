@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مقسم المصاريف بين الأصدقاء | أداة مجانية</title>
+<meta name="description" content="قسّم مصاريف رحلة أو شقة أو مشوار بين الأصدقاء بالتساوي: سجّل من دفع كم، واعرف من يدفع لمن بالضبط. دون إرسال أي بيانات.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Tahoma,'Segoe UI',Arial,sans-serif;background:#f1f5f9;color:#1e293b;line-height:1.7;min-height:100vh;display:flex;flex-direction:column}
+header{background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;padding:1.6rem 1rem;text-align:center}
+header h1{font-size:1.5rem}
+.tagline{opacity:.92;font-size:.95rem;margin-top:.25rem}
+main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:1rem}
+.card{background:#fff;border-radius:14px;padding:1.25rem;box-shadow:0 1px 4px rgba(15,23,42,.08);margin-bottom:1rem}
+.card h2{font-size:1.1rem;margin-bottom:.4rem;color:#0f766e}
+label{display:block;font-weight:700;margin:.75rem 0 .3rem}
+input,select,textarea{width:100%;padding:.7rem .8rem;border:1.5px solid #cbd5e1;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff;color:#1e293b}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#0f766e;box-shadow:0 0 0 3px rgba(20,184,166,.18)}
+.row{display:flex;gap:.6rem}
+.row>*{flex:1;min-width:0}
+button{display:inline-block;width:100%;padding:.8rem;border:0;border-radius:10px;background:#0f766e;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:1rem}
+button:hover{background:#115e59}
+button.ghost{background:#e2e8f0;color:#1e293b}
+.result{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:10px;padding:1rem;margin-top:1rem;font-size:1.05rem;word-break:break-word}
+.result b{color:#047857}
+.result.warn{background:#fffbeb;border-color:#fcd34d}
+.result.warn b{color:#b45309}
+.result.bad{background:#fef2f2;border-color:#fca5a5}
+.result.bad b{color:#b91c1c}
+.muted{color:#64748b;font-size:.85rem}
+footer{background:#0f172a;color:#94a3b8;text-align:center;padding:1.2rem 1rem;font-size:.85rem;line-height:1.9}
+footer a{color:#5eead4}
+table{width:100%;border-collapse:collapse;margin-top:.5rem}
+th,td{padding:.5rem;border-bottom:1px solid #e2e8f0;text-align:right;font-size:.95rem}
+.big{font-size:1.6rem;font-weight:800}
+.hidden{display:none}
+.chk{display:flex;align-items:center;gap:.5rem;margin:.3rem 0}
+.chk input{width:auto}
+
+</style>
+</head>
+<body>
+<header>
+<h1>مقسم المصاريف</h1>
+<p class="tagline">من دفع كم، ومن يدفع لمن — قسمة عادلة في ثوانٍ</p>
+</header>
+<main>
+<div class="card">
+<h2>الأشخاص</h2>
+<label for="names">الأسماء مفصولة بفاصلة</label>
+<input type="text" id="names" placeholder="علي، منى، سامي" onchange="renderPeople()">
+<button class="ghost" onclick="renderPeople()">ثبّت الأسماء</button>
+</div>
+<div class="card hidden" id="payCard">
+<h2>سجّل دفعة</h2>
+<div class="row">
+<div>
+<label for="payer">من دفع؟</label>
+<select id="payer"></select>
+</div>
+<div>
+<label for="amount">المبلغ (جنيه)</label>
+<input type="number" inputmode="decimal" id="amount" min="0" placeholder="300">
+</div>
+</div>
+<button onclick="addPayment()">أضف الدفعة</button>
+</div>
+<div class="card hidden" id="logCard">
+<h2>الدفعات المسجلة</h2>
+<ul id="log"></ul>
+</div>
+<button class="hidden" id="calcBtn" onclick="calc()">احسب التسوية</button>
+<div id="out" class="result hidden"></div>
+
+</main>
+<footer>
+<p>تعمل هذه الأداة بالكامل على جهازك، ولا تُحفظ أو تُرسل أي بيانات إلى أي خادم.</p>
+<p>أداة مجانية مفتوحة المصدر · بُنيت بمساعدة أدوات ذكاء اصطناعي · <a href="https://github.com/abood-ayman/expense-splitter-ar">الكود على GitHub</a></p>
+</footer>
+<script>
+window.__jserrors=[];window.addEventListener('error',function(e){window.__jserrors.push(String(e.message))});
+const g = id => document.getElementById(id);
+const fmt = x => x.toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' جنيه';
+
+let people = [];
+let payments = [];
+
+function settle(paid) {
+  // paid: {name: amount}. Returns {share, balances:[{name,balance}], transfers:[{from,to,amount}]}
+  const names = Object.keys(paid);
+  const total = names.reduce((s, n) => s + paid[n], 0);
+  const share = names.length ? total / names.length : 0;
+  const balances = names.map(n => ({ name: n, balance: Math.round((paid[n] - share) * 100) / 100 }));
+  const creditors = balances.filter(b => b.balance > 0.004).map(b => ({ ...b })).sort((a, b) => b.balance - a.balance);
+  const debtors = balances.filter(b => b.balance < -0.004).map(b => ({ ...b, balance: -b.balance })).sort((a, b) => b.balance - a.balance);
+  const transfers = [];
+  let i = 0, j = 0;
+  while (i < debtors.length && j < creditors.length) {
+    const amt = Math.min(debtors[i].balance, creditors[j].balance);
+    transfers.push({ from: debtors[i].name, to: creditors[j].name, amount: Math.round(amt * 100) / 100 });
+    debtors[i].balance -= amt; creditors[j].balance -= amt;
+    if (debtors[i].balance < 0.005) i++;
+    if (creditors[j].balance < 0.005) j++;
+  }
+  return { share, balances, transfers, total };
+}
+
+function renderPeople() {
+  people = g('names').value.split(/[،,]/).map(s => s.trim()).filter(Boolean);
+  g('payCard').classList.toggle('hidden', people.length === 0);
+  g('payer').innerHTML = people.map(p => '<option>' + p + '</option>').join('');
+  g('calcBtn').classList.toggle('hidden', people.length === 0);
+}
+
+function renderLog() {
+  g('logCard').classList.toggle('hidden', payments.length === 0);
+  g('log').innerHTML = payments.map((p, i) => '<li style="padding:.3rem 0;border-bottom:1px solid #e2e8f0">' + p.payer + ' دفع ' + fmt(p.amount) + ' <button class="ghost" style="width:auto;margin:0;padding:0 .7rem;font-size:.8rem" onclick="delPayment(' + i + ')">حذف</button></li>').join('');
+}
+function addPayment() {
+  const payer = g('payer').value, amount = parseFloat(g('amount').value);
+  if (!payer || isNaN(amount) || amount <= 0) return;
+  payments.push({ payer, amount });
+  g('amount').value = '';
+  renderLog();
+}
+function delPayment(i) { payments.splice(i, 1); renderLog(); }
+
+function calc() {
+  const paid = {};
+  for (const p of people) paid[p] = 0;
+  for (const p of payments) if (p.payer in paid) paid[p.payer] += p.amount;
+  const r = settle(paid);
+  const el = g('out');
+  el.classList.remove('hidden');
+  let h = '<p>إجمالي المصاريف: <b>' + fmt(r.total) + '</b> · نصيب الفرد: <b>' + fmt(r.share) + '</b></p>';
+  h += '<table><tr><th>الشخص</th><th>دفع</th><th>رصيده</th></tr>' +
+    r.balances.map(b => '<tr><td>' + b.name + '</td><td>' + fmt(paid[b.name]) + '</td><td>' + (b.balance >= 0 ? 'له ' + fmt(b.balance) : 'عليه ' + fmt(-b.balance)) + '</td></tr>').join('') + '</table>';
+  h += r.transfers.length
+    ? '<p style="margin-top:.6rem"><b>التحويلات المقترحة:</b></p><ul>' + r.transfers.map(t => '<li>' + t.from + ' يدفع ' + fmt(t.amount) + ' إلى ' + t.to + '</li>').join('') + '</ul>'
+    : '<p style="margin-top:.6rem">الجميع متساوون، لا تحويلات مطلوبة.</p>';
+  el.innerHTML = h;
+}
+
+window.__test = function () {
+  const a = settle({ 'علي': 300, 'منى': 0, 'سامي': 0 });
+  const b = settle({ 'علي': 150, 'منى': 150, 'سامي': 0 });
+  const c = settle({ 'علي': 100, 'منى': 100 });
+  const okA = Math.abs(a.share - 100) < 0.001 && a.transfers.length === 2 &&
+    a.transfers.every(t => t.to === 'علي' && Math.abs(t.amount - 100) < 0.001);
+  const okB = b.transfers.length === 2 && b.transfers.every(t => t.from === 'سامي' && Math.abs(t.amount - 50) < 0.001);
+  const okC = c.transfers.length === 0;
+  return { pass: okA && okB && okC, details: { a, b, c } };
+};
+
+window.__demo = function () {
+  g('names').value = 'علي، منى، سامي';
+  renderPeople();
+  payments = [{ payer: 'علي', amount: 450 }, { payer: 'منى', amount: 150 }];
+  g('payer').value = 'علي'; g('amount').value = '';
+  renderLog();
+  calc();
+};
+
+</script>
+</body>
+</html>
