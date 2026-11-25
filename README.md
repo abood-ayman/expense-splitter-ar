@@ -1,28 +1,27 @@
-# مقسم المصاريف
+# Expense Splitter | مقسم المصاريف
 
-من دفع كم، ومن يدفع لمن — قسمة عادلة في ثوانٍ
+Split shared expenses between friends: record who paid what and see exactly who owes whom. Arabic interface.
 
-**رابط الأداة (تعمل فورًا من المتصفح):** https://abood-ayman.github.io/expense-splitter-ar/
+**Live app:** https://abood-ayman.github.io/expense-splitter-ar/
 
-## ما الذي تقدمه؟
+![Expense Splitter, mobile view](docs/screenshot.svg)
 
-- سجّل كل شخص وما دفعه، والتقسيم بالتساوي تلقائي
-- يحسب نصيب كل فرد ورصيده (له أو عليه)
-- يقترح أقل عدد تحويلات لتصفية الحسابات بين الجميع
-- مثالي للرحلات والسفر والشقق المشتركة والمناسبات
+This is a personal project, built with AI tools.
 
-## الخصوصية
+## Features
+- Record each person and what they paid; equal split is automatic
+- Computes each person's share and balance
+- Suggests the fewest transfers to settle everyone up
+- Great for trips, travel, shared flats and events
 
-تعمل الأداة بالكامل داخل متصفحك (HTML/CSS/JavaScript فقط). لا يوجد خادم، ولا حسابات، ولا تتبّع، ولا تُرسل أو تُحفظ أي بيانات تدخلها خارج جهازك.
+## Privacy
+Everything runs in your browser. No data is stored or sent anywhere.
 
-## التقنية
+## Run locally
+Open `index.html` in any browser. It is a single static page with no dependencies.
 
-صفحة ثابتة واحدة بلا أي مكتبات خارجية، تعمل على الهاتف والحاسوب، وتُستضاف مجانًا عبر GitHub Pages.
+## Status
+Stable.
 
-## ملاحظة شفافية
-
-بُنيت هذه الأداة بمساعدة أدوات ذكاء اصطناعي، ورُوعيَت بساطتها وفائدتها المباشرة.
-
-## الرخصة
-
-MIT — انظر ملف LICENSE.
+## Copyright
+MIT License - Copyright (c) 2026 Abdullah Ayman.
