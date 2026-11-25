@@ -4,6 +4,8 @@ Split shared expenses between friends: record who paid what and see exactly who 
 
 **Live app:** https://abood-ayman.github.io/expense-splitter-ar/
 
+**LinkedIn:** [Project entry](https://www.linkedin.com/in/abdullah-ayman-1678b737b/details/projects/)
+
 ![Expense Splitter, mobile view](docs/screenshot.svg)
 
 This is a personal project, built with AI tools.
